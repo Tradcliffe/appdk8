@@ -1,0 +1,62 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: azure-java-appd
+spec:
+  template:
+    metadata:
+      labels:
+        app: azure-java-appd
+    spec:
+      containers:
+      - name: azure-java-appd
+        image: tchung02/sampleapp:2.1
+        ports:
+          - containerPort: 80
+          - containerPort: 8080
+        env:
+          - name: APPDYNAMICS_CONTROLLER_HOST_NAME
+            value: "FILL_IN_CONTROLLER"
+          - name: APPDYNAMICS_CONTROLLER_PORT
+            value: "8090"
+          - name: APPDYNAMICS_CONTROLLER_SSL_ENABLED
+            value: "false"
+          - name: APPDYNAMICS_AGENT_ACCOUNT_NAME
+            value: "FILL_IN_ACCOUNT_NAME"
+          - name: APPDYNAMICS_AGENT_ACCOUNT_ACCESS_KEY
+            value: "FILL_IN_ACCESS_KEY"
+          - name: APPDYNAMICS_AGENT_APPLICATION_NAME
+            value: "FILL_IN_APPLICATION_NAME"
+          - name: APPDYNAMICS_AGENT_TIER_NAME
+            value: "FILL_IN_TIER_NAME"
+          - name: APPDYNAMICS_NODE_PREFIX
+            value: "FILL_IN_NODE_NAME"
+            
+        volumeMounts:
+          - name: host-root
+            mountPath: /hostroot
+            readOnly: true
+          - name: docker-socket
+            mountPath: /var/run/docker.sock    
+        securityContext:
+          privileged: true
+      volumes:    
+      - name: host-root
+        hostPath:
+          path: /
+      - name: docker-socket
+        hostPath:
+          path: /var/run/docker.sock
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: azure-java-appd
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 8080
+  selector:
+    app: azure-java-appd
+---
